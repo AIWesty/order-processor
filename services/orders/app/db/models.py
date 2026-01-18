@@ -23,9 +23,9 @@ class Order(Base):
     ) #время обновления 
     
     
-    __table_args__ = Index(
+    __table_args__ = (Index(
         "id_customer_status_created", "customer_id", "status", "created_at" #кастомный индекс для быстрой выборке по id заказчика > status > время создания
-        )
+        ), )
 
     def __repr__(self) -> str:
         return f"<Order(id={self.id}, customer_id={self.customer_id}, status={self.status})>"

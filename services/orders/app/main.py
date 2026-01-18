@@ -3,7 +3,9 @@ import sys
 from fastapi import FastAPI
 from app.config import settings
 from app.health import router as health_router
+from app.api.orders import router as orders_router 
 from contextlib import asynccontextmanager
+from app.db.base import engine
 
 
 # Настройка логирования
@@ -21,11 +23,22 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     # Код, выполняемый при запуске
     logger.info("Orders service starting...")
+    logger.info(f"Database URL: {settings.database_url}")
     
-    yield  # Здесь приложение работает
+    try: 
+        async with engine.begin() as conn: 
+            await conn.run_sync(lambda _: None)
+        logger.info("Database connection successful")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        raise
+    
+    yield  # отдаем управление приложению 
     
     # Код, выполняемый при завершении
     logger.info("Orders service shutting down...")
+    await engine.dispose()
+    logger.info("Database conn closed")
 
 
 
@@ -34,9 +47,14 @@ app = FastAPI(title="Orders Service", version="0.1.0", lifespan=lifespan)
 
 # Подключаем healthcheck
 app.include_router(health_router)
-
+app.include_router(orders_router)
 
 
 @app.get("/")
 async def root():
-    return {"message": "Orders Service", "environment": settings.environment}
+    return {
+        "message": "Orders Service",
+        "environment": settings.environment,
+        "endpoints": ['/health', '/orders']
+    }
+    
