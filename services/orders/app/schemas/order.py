@@ -1,7 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
-class OderCreate(BaseModel): 
+class OrderCreate(BaseModel): 
     """Валидация пришедших данных. Схема для создания заказа"""
     customer_id: int = Field(..., gt=0) #обязательное поле, больше 0
     product_name: str = Field(..., min_length=1, max_length=255)
