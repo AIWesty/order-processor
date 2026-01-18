@@ -1,4 +1,5 @@
 import logging
+import sys
 from fastapi import FastAPI
 from app.config import settings
 from app.health import router as health_router
@@ -9,6 +10,7 @@ from contextlib import asynccontextmanager
 logging.basicConfig(
     level=settings.log_level,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)] # пишет в stdout, логи в docker всплывают наружу
 )
 logger = logging.getLogger(__name__)
 

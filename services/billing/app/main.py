@@ -1,4 +1,5 @@
 import logging
+import sys
 from fastapi import FastAPI
 from app.config import settings
 from app.heath import router as health_router
@@ -9,6 +10,7 @@ from contextlib import asynccontextmanager
 logging.basicConfig(
     level=settings.log_level,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)] # пишет в stdout, логи в docker всплывают наружу
 )
 logger = logging.getLogger(__name__)
 
@@ -17,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код, выполняемый при запуске
+    # выполняется при запуске приложения
     logger.info("Billing service starting...")
     
-    yield  # Здесь приложение работает
+    yield  # здесь приложение работает
     
     # Код, выполняемый при завершении
     logger.info("Billing service shutting down...")
@@ -34,7 +36,7 @@ app = FastAPI(title="Orders Service", version="0.1.0", lifespan=lifespan)
 app.include_router(health_router)
 
 
-
+#корневой эндпоинт
 @app.get("/")
 async def root():
     return {"message": "Billing Service (gRPC soon)","environment": settings.environment}
