@@ -42,8 +42,17 @@ class OrderRepository:
         
         orders = result_tuple.scalars().all()#преобразует и оставляет только обьекты  [Order(id=1, customer_id=10, ...), ...] 
         
-        count_orders = select(func.count()).select_from(Order)
-        total = await db.scalar(count_orders)
+        count_orders = select(func.count()).select_from(Order)#считаем количество обьектов из таблицы Order
+        total = await db.scalar(count_orders)# одно значение (из первого столбца первой строки)
         
         return list(orders), total or 0
-        
+    
+    
+    @staticmethod
+    async def get_orders_by_customers_and_status(db: AsyncSession, customer_id: int, status: str) -> list[Order]:
+        """Делаем выборку заказов по customer_id и status"""
+        query = select(Order).where(Order.customer_id == customer_id, Order.status == status).order_by(Order.created_at.desc())#формируем запрос 
+        result = await db.execute(query)#выполняем и получаем список кортежекй
+        return list(result.scalars().all())#получаем при помощи scalars all() обьекты и оборачиваем в список
+    
+    
