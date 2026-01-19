@@ -32,6 +32,7 @@ class KafkaProducerClient:
         
         try:
             await self.producer.send_and_wait(topic, message)#пытаемся отправить сообщение в топик с подтверждением того что оно пришло
+            logger.info(f"message - {message} sends to topic - {topic}")
         except Exception as e:
             logger.error(f"Failed to send message to {topic}: ", e)
             # вреальном проде тут нужен ретрай или outbox pattern

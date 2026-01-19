@@ -6,7 +6,7 @@ from app.health import router as health_router
 from app.api.orders import router as orders_router 
 from contextlib import asynccontextmanager
 from app.db.base import engine
-from kafka_producer import kafka_client
+from app.kafka_producer import kafka_client
 
 
 # Настройка логирования
