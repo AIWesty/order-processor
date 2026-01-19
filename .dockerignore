@@ -1,0 +1,25 @@
+.git
+.gitignore
+.env
+.env.*
+__pycache__/
+*.pyc
+
+# IDE
+.vscode/
+.idea/
+
+# tests
+tests/
+**/tests/
+
+# docs
+docs/
+*.md
+
+# локальные виртуальные окружения
+.venv/
+venv/
+
+# node (если вдруг будет фронт)
+node_modules/

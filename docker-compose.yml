@@ -59,7 +59,7 @@ services:
   orders:
     build:
       context: .
-      dockerfile: service/orders/Dockerfile
+      dockerfile: services/orders/Dockerfile
     container_name: ms_orders
     env_file:
       - .env
@@ -79,7 +79,7 @@ services:
   billing:
     build:
       context: .
-      dockerfile: service/billing/Dockerfile 
+      dockerfile: services/billing/Dockerfile 
     container_name: ms_billing
     env_file:
       - .env
@@ -98,8 +98,8 @@ services:
 
   delivery:
     build:
-      context: ./services/delivery
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/delivery/Dockerfile
     container_name: ms_delivery
     env_file:
       - .env
