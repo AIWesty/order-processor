@@ -37,5 +37,5 @@ async def get_list_orders(
 @router.get("/customer/{customer_id}/status/{status}", response_model=list[OrderResponse])#ответом будет список заказов
 async def get_orders_by_customers_and_status(customer_id: int, status: str, db: AsyncSession = Depends(get_db)): 
     """Получаеам заказы по customers id и status с сортировкой по дате создания(новые сверху)"""
-    orders = OrderRepository.get_orders_by_customers_and_status(db, customer_id, status)
+    orders = await OrderRepository.get_orders_by_customers_and_status(db, customer_id, status)
     return orders
