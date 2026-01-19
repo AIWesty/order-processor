@@ -7,7 +7,10 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 class KafkaProducerClient: 
-    """Синглтон для управления соединением с кафкой на стороне producer'a, так просто проще чем такщить DI"""
+    """
+    Синглтон для управления соединением с кафкой на стороне producer'a, так просто проще чем такщить DI
+    Будет создаваться экземпляр один раз за все выполнение программы
+    """
     def __init__(self) -> None:
         self.producer = None #задаем producer как None для переопределения
         
@@ -35,3 +38,4 @@ class KafkaProducerClient:
             raise # прокидываем выше
         
         
+kafka_client = KafkaProducerClient()

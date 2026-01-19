@@ -6,6 +6,7 @@ from app.health import router as health_router
 from app.api.orders import router as orders_router 
 from contextlib import asynccontextmanager
 from app.db.base import engine
+from kafka_producer import kafka_client
 
 
 # Настройка логирования
@@ -25,18 +26,21 @@ async def lifespan(app: FastAPI):
     logger.info("Orders service starting...")
     logger.info(f"Database URL: {settings.database_url}")
     
-    try: 
-        async with engine.begin() as conn: 
+    try: #попытка проверки коннекта к базе с пустым сообщением
+        async with engine.begin() as conn: #начинаем транзакцию
             await conn.run_sync(lambda _: None)
         logger.info("Database connection successful")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
         raise
     
+    await kafka_client.start() # поднимаем клиент кафки
+    
     yield  # отдаем управление приложению 
     
     # Код, выполняемый при завершении
     logger.info("Orders service shutting down...")
+    await kafka_client.stop()
     await engine.dispose()
     logger.info("Database conn closed")
 

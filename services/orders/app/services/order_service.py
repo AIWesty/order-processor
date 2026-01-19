@@ -2,6 +2,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Order
 from app.schemas.order import OrderCreate
+from libs.contracts.events import OrderCreatedEvent
+from app.kafka_producer import kafka_client
 
 
 class OrderRepository:
@@ -20,8 +22,19 @@ class OrderRepository:
             status='pending' # статус обработка
         )
         db.add(order)# помечаем обьект на вставку после коммита
-        await db.flush() # отправляем обьект в базу, но не закрываем транзакцию, чтобы получить id для возврата
-        await db.refresh(order) #подтягиваем обновления с базы, обьект получается id и мы можем его использовать
+        await db.commit() # отправляем обьект в базу,сохраняем, потом получим id 
+        await db.refresh(order) #подтягиваем обновления с базы, обьект получает id и мы можем его использовать
+        
+        #собираем эвент по модели
+        event = OrderCreatedEvent(
+            order_id=order.id,
+            customer_id=order.customer_id, # все данные берем с ордера
+            total_price=order.total_price,
+            status=order.status
+        )
+        # топик автоматически создается по новому имени
+        await kafka_client.send_message("orders.created", event.model_dump()) # передаем сообщение в топик кафке, превращаем в словарь
+        
         return order #возвращаем python обьект 
     
     
