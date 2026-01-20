@@ -15,8 +15,12 @@ COPY libs/ /app/libs/
 # Чтобы Python видел пакет libs, добавляем путь
 ENV PYTHONPATH=/app
 
-#копируем приложение в рабочую директорию
+#копируем приложение в рабочую директорию, алембик
 COPY services/billing/app/ /app/app/
+COPY services/orders/alembic/ /app/alembic/
+COPY services/orders/alembic.ini .
+
 
 #запускаем asgi сервер
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
