@@ -17,8 +17,8 @@ ENV PYTHONPATH=/app
 
 #копируем приложение в рабочую директорию, алембик
 COPY services/billing/app/ /app/app/
-COPY services/orders/alembic/ /app/alembic/
-COPY services/orders/alembic.ini .
+# COPY services/billing/alembic/ /app/alembic/
+# COPY services/billing/alembic.ini . # для прода раскомент 
 
 
 #запускаем asgi сервер

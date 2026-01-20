@@ -4,7 +4,7 @@ from app.config import settings
 
 
 engine = create_async_engine(
-    settings.database_url,
+    settings.database_url,  #живем в базе orders, в проде создали бы новую
     pool_pre_ping=True,#включаем тестовый запрос на проверку соединения(каждого коннекта)
     pool_size=5,
     max_overflow=10
