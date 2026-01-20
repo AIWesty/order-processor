@@ -3,6 +3,11 @@ import json
 import logging
 from aiokafka import AIOKafkaConsumer
 from app.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.config import settings
+from app.db.base import AsyncSessionLocal
+from app.services.payment_service import PaymentService
+from libs.contracts.events import OrderCreatedEvent
 
 from libs.contracts.events import OrderCreatedEvent
 
@@ -30,10 +35,9 @@ async def consume_orders():
                 logger.info(f"Billing received event: {event}")
                 logger.info(f"Processing payment for Order ID: {event.order_id}...")
                 
-                
-                # ТУТ БУДЕТ ЛОГИКА ОПЛАТЫ 
-                
-                
+                async with AsyncSessionLocal() as db: 
+                    await PaymentService.process_payment(db, event)
+                    
             except Exception as e: 
                 logger.error(f'Error processing message: {e}')
     finally: 
