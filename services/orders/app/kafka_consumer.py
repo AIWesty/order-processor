@@ -11,6 +11,7 @@ from libs.contracts.events import PaymentSucceededEvent, PaymentFailedEvent
 logger = logging.getLogger(__name__)
 
 async def consume_payment_events(settings: Settings, session_maker: async_sessionmaker[AsyncSession]):
+    """Consumer, читающий обновления по payments, и обвноляющий статус заказа в бд"""
     consumer = AIOKafkaConsumer( #создание обьекта consumer
         "payments.succeeded",
         "payments.failed",

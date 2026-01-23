@@ -14,7 +14,13 @@ from app.kafka_consumer import consume_payment_events
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Код, выполняемый при запуске
+    """
+    Управление жизненным циклом приложения, задаем и запускаем задачи до старта нашего приложения 
+    и закрываем все сессии и соединения в конце
+    """
+    # Ниже код, выполняющийся до запуска
+    
+    #получаем конфиг с настройками
     settings = get_settings()
     
     #настройка логирования
@@ -39,14 +45,15 @@ async def lifespan(app: FastAPI):
         logger.error(f"Database connection failed: {e}")
         raise
     
-    #своя фабрика для фоновых задач
+    #своя фабрика для фоновых задач, которые обьявляем ниже 
     bg_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
+    #встраиваем consumer в event loop
     consumer_task = asyncio.create_task(
         consume_payment_events(settings, bg_session_maker)
     )
     
-    await kafka_client.start() # поднимаем producer kafka
+    await kafka_client.start(settings) # поднимаем producer kafka
     
     #в контейнер приложения заворачиваем наши переиспользуемые функции, чтобы работать с ними в коде через dependency
     app.state.kafka = kafka_client 
@@ -78,6 +85,8 @@ app.include_router(health_router)
 app.include_router(orders_router)
 
 
+
+# Служебный endpoint, располагается на /
 @app.get("/")
 async def root(settings: Settings = Depends(get_app_settings)):
     return {
