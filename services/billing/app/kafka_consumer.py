@@ -2,14 +2,14 @@ import asyncio
 import json
 import logging
 from aiokafka import AIOKafkaConsumer
-from app.config import settings
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.config import settings
+from app.config import get_settings
 from app.db.base import AsyncSessionLocal
 from app.services.payment_service import PaymentService
 from libs.contracts.events import OrderCreatedEvent
 
-from libs.contracts.events import OrderCreatedEvent
+
+settings = get_settings()
 
 logger = logging.getLogger(__name__)
 

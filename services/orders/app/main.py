@@ -1,50 +1,72 @@
 import logging
 import sys
-from fastapi import FastAPI
-from app.config import get_settings
+import asyncio
+from fastapi import FastAPI, Depends
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
+from app.config import get_settings, Settings
 from app.health import router as health_router
 from app.api.orders import router as orders_router 
+from app.db.engine import create_engine 
 from contextlib import asynccontextmanager
-from app.db.base import engine
 from app.kafka_producer import kafka_client
-
-
-settings = get_settings()
-
-# Настройка логирования
-logging.basicConfig(
-    level=settings.log_level,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)] # пишет в stdout, логи в docker всплывают наружу
-)
-logger = logging.getLogger(__name__)
-
-
-
+from app.dependency import get_app_settings 
+from app.kafka_consumer import consume_payment_events
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Код, выполняемый при запуске
+    settings = get_settings()
+    
+    #настройка логирования
+    logging.basicConfig(
+        level=settings.log_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)] # пишет в stdout, логи в docker всплывают наружу
+        )
+    logger = logging.getLogger(__name__)
+    
     logger.info("Orders service starting...")
     logger.info(f"Database URL: {settings.database_url}")
     
-    try: #попытка проверки коннекта к базе с пустым сообщением
+    
+    #получаем движок 
+    engine = create_engine(settings) 
+    try:
         async with engine.begin() as conn: #начинаем транзакцию
-            await conn.run_sync(lambda _: None)
-        logger.info("Database connection successful")
+            await conn.run_sync(lambda _: None) # выполняем пустой запрос к базе для проверки работы
+            logger.info("Database connection successful")
     except Exception as e:
         logger.error(f"Database connection failed: {e}")
         raise
     
-    await kafka_client.start() # поднимаем клиент кафки
+    #своя фабрика для фоновых задач
+    bg_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    
+    consumer_task = asyncio.create_task(
+        consume_payment_events(settings, bg_session_maker)
+    )
+    
+    await kafka_client.start() # поднимаем producer kafka
+    
+    #в контейнер приложения заворачиваем наши переиспользуемые функции, чтобы работать с ними в коде через dependency
+    app.state.kafka = kafka_client 
+    app.state.engine = engine
+    app.state.settings = settings
     
     yield  # отдаем управление приложению 
     
     # Код, выполняемый при завершении
-    logger.info("Orders service shutting down...")
+    consumer_task.cancel() 
+    try:
+        await consumer_task # Ждем завершения
+    except asyncio.CancelledError:
+        logger.info("Consumer task stopped")
+        
     await kafka_client.stop()
-    await engine.dispose()
+    
+    await engine.dispose() #закрытие соединений после завершения работы приложения 
     logger.info("Database conn closed")
+    logger.info("Orders service shutting down...")
 
 
 
@@ -57,7 +79,7 @@ app.include_router(orders_router)
 
 
 @app.get("/")
-async def root():
+async def root(settings: Settings = Depends(get_app_settings)):
     return {
         "message": "Orders Service",
         "environment": settings.environment,

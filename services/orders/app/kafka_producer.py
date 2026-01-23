@@ -3,7 +3,6 @@ import logging
 from aiokafka import AIOKafkaProducer
 from app.config import get_settings
 
-settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +15,7 @@ class KafkaProducerClient:
         self.producer = None #задаем producer как None для переопределения
         
     async def start(self): 
+        settings = get_settings() 
         self.producer = AIOKafkaProducer(
             bootstrap_servers=settings.kafka_bootstrap_servers, #прокидываем брокера, для подключения и получения данных о остальных брокерах
             value_serializer=lambda v: json.dumps(v).encode("utf-8")#переводим данные в bytes понятные для kafka

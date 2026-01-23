@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_db
+from app.dependency import get_db
 from app.schemas.order import OrderCreate, OrderResponse, OrderList
 from app.services.order_service import OrderRepository
 

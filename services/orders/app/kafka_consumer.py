@@ -2,16 +2,15 @@ import asyncio
 import json
 import logging
 from aiokafka import AIOKafkaConsumer
-from app.config import get_settings
-from app.db.base import AsyncSessionLocal
+from app.config import Settings
 from app.services.order_service import OrderRepository
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from libs.contracts.events import PaymentSucceededEvent, PaymentFailedEvent
 
-settings = get_settings()
 
 logger = logging.getLogger(__name__)
 
-async def consume_payment_events():
+async def consume_payment_events(settings: Settings, session_maker: async_sessionmaker[AsyncSession]):
     consumer = AIOKafkaConsumer( #создание обьекта consumer
         "payments.succeeded",
         "payments.failed",
@@ -31,7 +30,7 @@ async def consume_payment_events():
                 if isinstance(data, dict):
                     event_name = data.get("event_name")#получаем имя события
                 
-                async with AsyncSessionLocal() as db: 
+                async with session_maker() as db: 
                     if event_name == "PaymentSucceeded": #если это из успешных платежей
                         event = PaymentSucceededEvent.model_validate(data)
                         logger.info(f"Payment succeeded for order {event.order_id}")

@@ -2,13 +2,15 @@ import logging
 import sys
 import asyncio
 from fastapi import FastAPI
-from app.config import settings
+from app.config import get_settings
 from app.heath import router as health_router
 from contextlib import asynccontextmanager
 from app.kafka_consumer import consume_orders 
 from app.kafka_producer import kafka_producer
 from app.db.base import engine
 
+
+settings = get_settings()
 
 # Настройка логирования
 logging.basicConfig(
@@ -39,7 +41,7 @@ async def lifespan(app: FastAPI):
     await kafka_producer.start()
     
     #до запуска поднимаем consumer в asyncio eventloop как фоновую задачу
-    task = asyncio.create_task(consume_orders())
+    task = asyncio.create_task(consume_orders()) 
     
     yield  # здесь приложение работает
     

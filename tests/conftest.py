@@ -12,9 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..")))# для имп
 
 
 from services.orders.app.db.base import Base
-from services.orders.app.config import get_settings 
 
-settings = get_settings() 
 
 @pytest.fixture(scope="session")
 def event_loop(): 
