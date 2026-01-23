@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import Order
 from app.schemas.order import OrderCreate
@@ -69,3 +69,13 @@ class OrderRepository:
         return list(result.scalars().all())#получаем при помощи scalars all() обьекты и оборачиваем в список
     
     
+    @staticmethod 
+    async def update_order_status(db: AsyncSession, order_id: int,  new_status: str): 
+        """Обновление статуса заказа"""
+        order = ( 
+            update(Order) #обновить у order
+            .where(Order.id == order_id)# по пришедшему айди
+            .values(status=new_status)
+        )
+        await db.execute(order)#выполняем запрос
+        await db.commit()#сохраняем транзакцию

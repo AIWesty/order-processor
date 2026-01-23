@@ -14,7 +14,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__))) #выходим �
 
 from app.db.base import Base
 from app.db.models import Order  # явно импортируем модели
-from app.config import settings
+from app.config import get_settings
+
+settings = get_settings()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -1,13 +1,15 @@
 import logging
 import sys
 from fastapi import FastAPI
-from app.config import settings
+from app.config import get_settings
 from app.health import router as health_router
 from app.api.orders import router as orders_router 
 from contextlib import asynccontextmanager
 from app.db.base import engine
 from app.kafka_producer import kafka_client
 
+
+settings = get_settings()
 
 # Настройка логирования
 logging.basicConfig(

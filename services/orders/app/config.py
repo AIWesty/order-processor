@@ -1,3 +1,4 @@
+from functools import lru_cache
 from pathlib import Path
 from pydantic_settings import BaseSettings
 
@@ -14,6 +15,10 @@ class Settings(BaseSettings):
     environment: str = "development"
 
     class Config:
-        env_file = Path(__file__).parent.parent.parent.parent / ".env"
+        env_file = Path(__file__).parent / ".env"
 
-settings = Settings()
+
+@lru_cache
+def get_settings() -> Settings:
+    """Ленивая загрузка только тогда, когда нужно"""
+    return Settings() # type: ignore , работает правильно 

@@ -6,6 +6,8 @@ from app.config import settings
 from app.heath import router as health_router
 from contextlib import asynccontextmanager
 from app.kafka_consumer import consume_orders 
+from app.kafka_producer import kafka_producer
+from app.db.base import engine
 
 
 # Настройка логирования
@@ -24,12 +26,28 @@ async def lifespan(app: FastAPI):
     # выполняется при запуске приложения
     logger.info("Billing service starting...")
     
+    
+    try: 
+        async with engine.begin() as conn: # проверка базы, открываем транзакцию 
+            await conn.run_sync(lambda _: None)# "пустой запрос"
+        logger.info("Database connection successful")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        raise
+    
+    #запуск producer
+    await kafka_producer.start()
+    
     #до запуска поднимаем consumer в asyncio eventloop как фоновую задачу
     task = asyncio.create_task(consume_orders())
     
     yield  # здесь приложение работает
     
+    
     # Код, выполняемый при завершении
+    #завершение работы producer
+    await kafka_producer.stop()
+    await engine.dispose()#завершение работы бд
     logger.info("Billing service shutting down...")
 
 
