@@ -1,9 +1,9 @@
 import logging
 import json
 from aiokafka import AIOKafkaProducer
-from app.config import get_settings
+from app.config import Settings
 
-settings = get_settings()
+
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +11,7 @@ class KafkaProducerClient:
     def __init__(self) -> None: 
         self.producer = None # здесь храним обьект AIOKafkaProducer
         
-    async def start(self): 
+    async def start(self, settings: Settings): 
         self.producer = AIOKafkaProducer(
             bootstrap_servers=settings.kafka_bootstrap_servers,
             value_serializer=lambda v: json.dumps(v).encode("utf-8") # сериализация данных в json, затем в bytes

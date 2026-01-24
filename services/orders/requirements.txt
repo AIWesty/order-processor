@@ -6,3 +6,5 @@ sqlalchemy[asyncio]
 asyncpg
 alembic
 aiokafka
+grpcio
+grpcio-tools

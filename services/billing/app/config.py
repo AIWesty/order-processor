@@ -1,4 +1,4 @@
-from functools import lru_cache
+
 from pathlib import Path
 from pydantic_settings import BaseSettings
 
@@ -14,6 +14,9 @@ class Settings(BaseSettings):
         env_file = Path(__file__).parent / ".env"
 
 
-@lru_cache
-def get_settings():
-    return Settings()#type: ignore
+def get_settings() -> Settings:
+    """
+    Ленивая загрузка, использовать в точках входа, не использовать в обычных модулях. 
+    Избегать циклического импорта
+    """
+    return Settings() # type: ignore , работает правильно 

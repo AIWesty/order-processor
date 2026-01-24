@@ -3,17 +3,17 @@ import json
 import logging
 from aiokafka import AIOKafkaConsumer
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.config import get_settings
-from app.db.base import AsyncSessionLocal
+from app.config import Settings
+from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from app.services.payment_service import PaymentService
 from libs.contracts.events import OrderCreatedEvent
 
 
-settings = get_settings()
+
 
 logger = logging.getLogger(__name__)
 
-async def consume_orders():
+async def consume_orders(settings: Settings, session_maker: async_sessionmaker[AsyncSession]):
     """Фоновая задача для чтения из kafkи"""
     consumer = AIOKafkaConsumer(
         "orders.created", #топик откуда читать
@@ -35,7 +35,7 @@ async def consume_orders():
                 logger.info(f"Billing received event: {event}")
                 logger.info(f"Processing payment for Order ID: {event.order_id}...")
                 
-                async with AsyncSessionLocal() as db: 
+                async with session_maker() as db: 
                     await PaymentService.process_payment(db, event)
                     
             except Exception as e: 

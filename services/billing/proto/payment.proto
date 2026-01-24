@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package payment; 
+
+//описание запроса на получение статуса платежа по order_id
+message GetPaymentStatusRequest { 
+    int32 order_id = 1; //описание того что должен содержать запрос
+}
+
+message GetPaymentStatusResponse {
+    int32 order_id = 1;
+    string status = 2; // pending / succeeded / failed / not_found
+    int32 payment_id = 3; // может быть 0, если нет платежа
+    double amount = 4; // 0.0 если нет платежа
+    string payment_method = 5; // card etc
+}
+
+
+//сам grpc сервис оплаты
+service PaymentService { 
+    rpc GetPaymentStatus (GetPaymentStatusRequest)
+        returns (GetPaymentStatusResponse);
+}
