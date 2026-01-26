@@ -1,12 +1,16 @@
+//контракт, для общения клиента(микросервис заказов) и сервера(микросервис платежей)
+
 syntax = "proto3";
 
 package payment; 
 
-//описание запроса на получение статуса платежа по order_id
+//описание запроса на получение статуса платежа по order_id(клиент обязан его передать)
 message GetPaymentStatusRequest { 
     int32 order_id = 1; //описание того что должен содержать запрос
 }
 
+
+//структура ответа, что содержится в ответе от сервера
 message GetPaymentStatusResponse {
     int32 order_id = 1;
     string status = 2; // pending / succeeded / failed / not_found
@@ -16,8 +20,8 @@ message GetPaymentStatusResponse {
 }
 
 
-//сам grpc сервис оплаты
+//сам grpc сервис оплаты(описание api, то как будет выглядеть весь метод)
 service PaymentService { 
-    rpc GetPaymentStatus (GetPaymentStatusRequest)
-        returns (GetPaymentStatusResponse);
+    rpc GetPaymentStatus (GetPaymentStatusRequest) //будет идти обращение к методу GetPaymentStatus с данными GetPaymentStatusRequest
+        returns (GetPaymentStatusResponse); //на выходе получим GetPaymentStatusResponse
 }

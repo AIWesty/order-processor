@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dependency import get_db
+from app.dependency import get_db, get_billing_client
 from app.schemas.order import OrderCreate, OrderResponse, OrderList
 from app.services.order_service import OrderRepository
+from app.grpc_client import BillingGrpcClient
 
 
 router = APIRouter(prefix='/orders', tags=['orders'])#создаем роутер и ставим prefix для всех путей эндпоинтов
@@ -39,3 +40,21 @@ async def get_orders_by_customers_and_status(customer_id: int, status: str, db: 
     """Получаеам заказы по customers id и status с сортировкой по дате создания(новые сверху)"""
     orders = await OrderRepository.get_orders_by_customers_and_status(db, customer_id, status)
     return orders
+
+@router.get("/{order_id}/payment-status")
+async def get_payment_status(order_id: int, db: AsyncSession = Depends(get_db), billing_client: BillingGrpcClient = Depends(get_billing_client)): 
+    """синхронный для клиента http запрос через grpc к Billing, принимаем grpc клиент как зависимость"""
+    order = await OrderRepository.get_order_by_id(db, order_id)#выбираем обьект заказа из бд 
+    if not order: 
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    response = await billing_client.get_payment_status(order_id)#отдаем в grpc на обработку
+    
+    return { #генерируем ответ из пришедших данных
+        "order_id": response.order_id,
+        "order_status": order.status,
+        "payment_status": response.status,
+        "payment_id": response.payment_id,
+        "amount": response.amount,
+        "payment_method": response.payment_method,
+    }

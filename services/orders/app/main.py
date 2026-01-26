@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from app.kafka_producer import kafka_client
 from app.dependency import get_app_settings 
 from app.kafka_consumer import consume_payment_events
+from app.grpc_client import BillingGrpcClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,10 +56,15 @@ async def lifespan(app: FastAPI):
     
     await kafka_client.start(settings) # поднимаем producer kafka
     
+    billing_client = BillingGrpcClient(settings)
+    await billing_client.connect()
+    
+    
     #в контейнер приложения заворачиваем наши переиспользуемые функции, чтобы работать с ними в коде через dependency
     app.state.kafka = kafka_client 
     app.state.engine = engine
     app.state.settings = settings
+    app.state.billing_client = billing_client
     
     yield  # отдаем управление приложению 
     
@@ -70,7 +76,7 @@ async def lifespan(app: FastAPI):
         logger.info("Consumer task stopped")
         
     await kafka_client.stop()
-    
+    await billing_client.close()
     await engine.dispose() #закрытие соединений после завершения работы приложения 
     logger.info("Database conn closed")
     logger.info("Orders service shutting down...")

@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     redis_url: str
     log_level: str = "INFO"
     environment: str = "development"
+    billing_grpc_port: int = 50051  # порт gRPC-сервера для Billing
+
 
     class Config:
         env_file = Path(__file__).parent / ".env"

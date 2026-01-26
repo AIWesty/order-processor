@@ -26,7 +26,7 @@ if _version_not_supported:
 
 
 class PaymentServiceStub(object):
-    """сам grpc сервис оплаты
+    """сам grpc сервис оплаты(описание api, то как будет выглядеть весь метод)
     """
 
     def __init__(self, channel):
@@ -43,11 +43,12 @@ class PaymentServiceStub(object):
 
 
 class PaymentServiceServicer(object):
-    """сам grpc сервис оплаты
+    """сам grpc сервис оплаты(описание api, то как будет выглядеть весь метод)
     """
 
     def GetPaymentStatus(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """на выходе получим GetPaymentStatusResponse
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -69,7 +70,7 @@ def add_PaymentServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class PaymentService(object):
-    """сам grpc сервис оплаты
+    """сам grpc сервис оплаты(описание api, то как будет выглядеть весь метод)
     """
 
     @staticmethod

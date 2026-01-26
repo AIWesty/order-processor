@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_db: str
     
+    billing_grpc_host: str = "billing"
+    billing_grpc_port: int = 50051
+    
     kafka_bootstrap_servers: str
     redis_url: str
     log_level: str = "INFO"

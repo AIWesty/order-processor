@@ -9,9 +9,8 @@ from app.kafka_consumer import consume_orders
 from app.kafka_producer import kafka_producer
 from app.db.engine import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-
 from services.billing.app.dependency import get_app_settings
-
+from app.grpc_serivce import start_server_grpc
 
 
 
@@ -53,12 +52,15 @@ async def lifespan(app: FastAPI):
     bg_session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     
+    
     consumer_task = asyncio.create_task(
-        consume_orders(settings, bg_session_maker)
-    )
+            consume_orders(settings, bg_session_maker)
+        )
     
     #запуск producer
     await kafka_producer.start(settings)
+    
+    grpc_server = await start_server_grpc(settings, engine)
     
     #в контейнер приложения заворачиваем наши переиспользуемые функции, чтобы работать с ними в коде через dependency
     app.state.kafka = kafka_producer

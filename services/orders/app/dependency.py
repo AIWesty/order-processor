@@ -3,6 +3,7 @@ from fastapi import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.config import Settings
 from app.kafka_producer import KafkaProducerClient
+from app.grpc_client import BillingGrpcClient
 
 def get_app_settings(request: Request) -> Settings: 
     """Зависимость для использования настроек в эндпоинтах"""
@@ -36,3 +37,6 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
             await session.close() #формальность, тк контекстный закроет
             
     
+def get_billing_client(request: Request) -> BillingGrpcClient:
+    """DI-функция для получения gRPC-клиента"""
+    return request.app.state.billing_client
