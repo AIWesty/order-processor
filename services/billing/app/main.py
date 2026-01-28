@@ -9,8 +9,8 @@ from app.kafka_consumer import consume_orders
 from app.kafka_producer import kafka_producer
 from app.db.engine import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from services.billing.app.dependency import get_app_settings
-from app.grpc_serivce import start_server_grpc
+from app.dependency import get_app_settings
+from app.grpc_service import start_server_grpc
 
 
 
@@ -60,7 +60,9 @@ async def lifespan(app: FastAPI):
     #запуск producer
     await kafka_producer.start(settings)
     
+    #тк не блокирующее, выполняем через await, а не отдельной таской
     grpc_server = await start_server_grpc(settings, engine)
+    grpc_task = asyncio.create_task(grpc_server.wait_for_termination())#запускаем бесконечное ожидание в таску event loopa 
     
     #в контейнер приложения заворачиваем наши переиспользуемые функции, чтобы работать с ними в коде через dependency
     app.state.kafka = kafka_producer
@@ -74,6 +76,10 @@ async def lifespan(app: FastAPI):
     yield  # здесь приложение работает
     
     # Код, выполняемый при завершении
+    
+    logger.info("Stopping gRPC server...")
+    await grpc_server.stop(grace=5)#аккуратная пауза
+    grpc_task.cancel()# закрываем таску
     
     consumer_task.cancel()
     

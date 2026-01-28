@@ -68,6 +68,9 @@ async def start_server_grpc(settings: Settings, engine: AsyncEngine):
     """
     Поднимает grpc сервер на порту из конфига
     """
+    
+    print(f"DEBUG: start_server_grpc called with port {settings.billing_grpc_port}")
+
 
     # Создаем фабрику сессий
     session_maker = async_sessionmaker(engine, expire_on_commit=False)

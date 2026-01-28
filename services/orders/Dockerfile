@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 
 #Копируем общую библиотеку
-COPY libs/ /app/libs/
+COPY ./libs /app/libs/
 # Чтобы Python видел пакет libs, добавляем путь
 ENV PYTHONPATH=/app
 
